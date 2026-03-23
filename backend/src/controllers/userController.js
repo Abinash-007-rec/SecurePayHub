@@ -1,15 +1,14 @@
-const db = require("../config/db");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+import db from "../config/db.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 // ===============================
 // REGISTER USER
 // ===============================
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // ✅ Validation
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -18,8 +17,7 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // ✅ Check duplicate email
-    const [existingUser] = await db.promise().query(
+    const [existingUser] = await db.query(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
@@ -28,16 +26,13 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Store user
-    await db.promise().query(
+    await db.query(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
       [name, email, hashedPassword]
     );
 
-    // ✅ Simulate email verification
     console.log(`Verification email sent to ${email}`);
 
     res.status(201).json({
@@ -53,17 +48,15 @@ exports.registerUser = async (req, res) => {
 // ===============================
 // LOGIN USER
 // ===============================
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // ✅ Validation
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // ✅ Check user
-    const [users] = await db.promise().query(
+    const [users] = await db.query(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
@@ -74,20 +67,19 @@ exports.loginUser = async (req, res) => {
 
     const user = users[0];
 
-    // ✅ Compare password
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // ✅ Generate JWT
     const token = jwt.sign(
       { id: user.id, email: user.email },
       "secretkey",
       { expiresIn: "1h" }
     );
 
-    res.json({
+    res.status(200).json({
       message: "Login successful",
       token
     });
@@ -101,7 +93,7 @@ exports.loginUser = async (req, res) => {
 // ===============================
 // PROFILE (Protected)
 // ===============================
-exports.getProfile = (req, res) => {
+export const getProfile = (req, res) => {
   res.json({
     message: "Profile accessed successfully",
     user: req.user
