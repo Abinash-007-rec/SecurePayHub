@@ -8,8 +8,7 @@
 - Ashwin D
 
 ## Project Description
-SecurePay Hub is a college project that demonstrates a secure and encrypted
-online payment processing system using modern security concepts.
+SecurePay Hub is a college project that demonstrates a secure and encrypted online payment processing system using modern security concepts.
 
 ## Objectives
 - Ensure secure transactions
